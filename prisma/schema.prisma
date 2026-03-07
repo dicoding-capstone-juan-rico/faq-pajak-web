@@ -18,6 +18,20 @@ enum Role {
   ADMIN
 }
 
+enum SenderType {
+  USER
+  AI
+  AGENT
+}
+
+enum ConversationStatus {
+  BOT_HANDLING
+  WAITING_AGENT
+  ACTIVE
+  RESOLVED
+  EXPIRED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -26,4 +40,41 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  conversations Conversation[]
+  assignedChats Conversation[] @relation("AgentConversations")
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  assignedTo  String?
+  agent       User?    @relation("AgentConversations", fields: [assignedTo], references: [id])
+
+  status      ConversationStatus @default(BOT_HANDLING)
+
+  lastMessageAt DateTime?
+  expiresAt     DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages    Message[]
+}
+
+model Message {
+  id             String   @id @default(cuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderType     SenderType
+  senderId       String?
+
+  content        String
+
+  createdAt      DateTime @default(now())
 }
