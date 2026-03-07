@@ -1,0 +1,29 @@
+services:
+  web:
+    build: .
+    container_name: capstone_web_faq_pajak
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - db
+
+  db:
+    image: postgres:18.3-alpine
+    container_name: capstone_postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: capstone_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data_capstone:/var/lib/postgresql/data
+
+volumes:
+  postgres_data_capstone:
