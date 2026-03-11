@@ -1,63 +1,144 @@
-import axios from 'axios';
+import axios from 'axios'
+import { ConversationStatus } from '@prisma/client'
 
-// Sesuaikan URL ini dengan endpoint API Anda yang sebenarnya
-const API_URL = '/api/chat/conversation'; 
+const API_URL = '/api/chat/conversation'
 
 export interface StartConversationResponse {
-  message: string;
+  message: string
   data: {
-    id: string; // Ini adalah conversationId
-    userId: string;
-    status: string;
+    conversationId: string
+    status: ConversationStatus
+    userMessage: {
+      id: string
+      content: string
+      createdAt: string
+    }
+    aiReply: {
+      id: string
+      content: string
+      createdAt: string
+    }
+  }
+}
+
+export interface GetConversationResponse {
+  message: string
+  data: {
+    conversation: {
+      id: string
+      userId: string
+      status: string
+      expiresAt: string
+    }
     messages: {
-      id: string;
-      content: string;
-      senderType: string;
-      createdAt: string;
-    }[];
-  };
+      id: string
+      content: string
+      senderType: string
+      createdAt: string
+    }[]
+  } | null
+}
+
+export interface SendMessageResponse {
+  message: string
+  data: {
+    conversationId: string
+    status: ConversationStatus
+    userMessage: {
+      id: string
+      content: string
+      createdAt: string
+    }
+    aiReply: {
+      id: string
+      content: string
+      createdAt: string
+    }
+  }
 }
 
 export const messageService = {
+
   /**
-   * Memulai percakapan baru (mengirim pesan pertama)
+   * START CONVERSATION (tetap ada)
    */
-  startConversation: async (content: string): Promise<StartConversationResponse> => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Token tidak ditemukan');
+  startConversation: async (
+    content: string
+  ): Promise<StartConversationResponse> => {
 
-      const response = await axios.post<StartConversationResponse>(
-        API_URL, // Asumsi endpoint POST Anda ada di route ini
-        { content },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Token tidak ditemukan')
+
+    const response = await axios.post<StartConversationResponse>(
+      API_URL,
+      { content },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      );
-
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Gagal memulai percakapan');
       }
-      throw error;
-    }
+    )
+
+    return response.data
   },
 
   /**
-   * Helper untuk mendecode JWT secara sederhana di sisi klien 
-   * (Digunakan untuk mendapatkan userId dari token)
+   * GET ACTIVE CONVERSATION
+   */
+  getConversation: async (): Promise<GetConversationResponse> => {
+
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Token tidak ditemukan')
+
+    const response = await axios.get<GetConversationResponse>(
+      `${API_URL}/message`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+
+    return response.data
+  },
+
+  /**
+   * SEND MESSAGE
+   */
+  sendMessage: async (
+    conversationId: string,
+    content: string
+  ): Promise<SendMessageResponse> => {
+
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Token tidak ditemukan')
+
+    const response = await axios.post<SendMessageResponse>(
+      `${API_URL}/message/${conversationId}`,
+      { content },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+
+    return response.data
+  },
+
+  /**
+   * Decode JWT
    */
   getUserIdFromToken: (): string | null => {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
+
+    const token = localStorage.getItem('token')
+    if (!token) return null
+
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.userId || null;
-    } catch (e) {
-      return null;
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      return payload.userId || null
+    } catch {
+      return null
     }
   }
-};
+}

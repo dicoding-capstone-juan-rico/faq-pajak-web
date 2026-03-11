@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { dbCon } from "@/lib/dbConnection"
 import { successResponse, errorResponse } from "@/lib/response"
 import jwt from "jsonwebtoken"
@@ -32,30 +33,49 @@ export async function POST(req: Request) {
       return errorResponse("Message content is required", 400)
     }
     console.log(`sending to ai: ${content},url: ${AI_API_URL}/chat`)
-    const aiRes = await fetch(
-      AI_API_URL+"/chat",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          question: content
-        })
-      }
-    )
+    let aiReply: string | null = null
+    let conversationStatus:ConversationStatus = ConversationStatus.BOT_HANDLING
+    try {
 
-    const aiData = await aiRes.json()
-    console.log("AI response:", aiData)
-    const aiReply =
-      aiData.answer ||
-      "Maaf, saya belum bisa menjawab pertanyaan tersebut."
+  const aiRes = await fetch(`${AI_API_URL}/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      question: content
+    })
+  })
+
+  if (!aiRes.ok) {
+    throw new Error("AI service error")
+  }
+
+  const aiData = await aiRes.json()
+
+  aiReply = aiData.answer
+
+} catch (error) {
+
+  console.error("AI error:", error)
+
+  aiReply =
+    "Mohon tunggu sebentar, pertanyaan Anda sedang kami teruskan ke agent."
+
+  conversationStatus = ConversationStatus.WAITING_AGENT
+}
+    
+    if (!aiReply) {
+      aiReply = "Maaf, saya belum bisa menjawab pertanyaan tersebut."
+    }
+    // console.log("AI response:", aiData)
+  
 
     const conversation = await dbCon.$transaction(async (tx) => {
       const conv = await tx.conversation.create({
         data: {
           userId,
-          status: ConversationStatus.BOT_HANDLING,
+          status: conversationStatus,
           lastMessageAt: new Date(),
           expiresAt: new Date(Date.now() + 5 * 60 * 1000)// expired in 5 minutes
         }
@@ -86,7 +106,7 @@ export async function POST(req: Request) {
 
    const payloadToFe = {
     conversationId: conversation.id,
-    assignedTo: conversation.assignedTo,
+    status: conversation.status,
 
     userMessage: {
         id: conversation.messages[0].id,

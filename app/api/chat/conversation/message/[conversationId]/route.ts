@@ -2,6 +2,7 @@ import { dbCon } from "@/lib/dbConnection"
 import { successResponse, errorResponse } from "@/lib/response"
 import jwt from "jsonwebtoken"
 import { SenderType } from "@prisma/client"
+import { ConversationStatus } from "@/app/generated/prisma/client"
 
 export async function POST(
   req: Request,
@@ -64,24 +65,44 @@ export async function POST(
       }
     })
     console.log("sending to ai:", content)
-    const aiRes = await fetch(
-      AI_API_URL+"/chat",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          question: content
-        })
-      }
-    )
+    let aiReply: string
+    let conversationStatus = conversation.status
 
-    const aiData = await aiRes.json()
-    console.log("AI response:", aiData)
-    const aiReply =
-      aiData.answer ||
-      "Maaf saya belum bisa menjawab pertanyaan tersebut."
+    try {
+
+      const aiRes = await fetch(
+        AI_API_URL + "/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            question: content
+          })
+        }
+      )
+
+      if (!aiRes.ok) {
+        throw new Error("AI service error")
+      }
+
+      const aiData = await aiRes.json()
+      console.log("AI response:", aiData)
+
+      aiReply =
+        aiData.answer ||
+        "Maaf saya belum bisa menjawab pertanyaan tersebut."
+
+    } catch (error) {
+
+      console.error("AI error:", error)
+
+      aiReply =
+        "Mohon tunggu sebentar, Anda sedang diarahkan ke agent."
+
+      conversationStatus = ConversationStatus.WAITING_AGENT
+    }
 
     const aiMessage = await dbCon.message.create({
       data: {
@@ -94,12 +115,13 @@ export async function POST(
     await dbCon.conversation.update({
       where: { id: conversationId },
       data: {
+        status: conversationStatus,
         lastMessageAt: new Date()
       }
     })
     const payloadToFe = {
       conversationId: conversation.id,
-      assignedTo: conversation.assignedTo,
+      status: conversation.status,
       userMessage:{
         id : userMessage.id,
         content: userMessage.content,
