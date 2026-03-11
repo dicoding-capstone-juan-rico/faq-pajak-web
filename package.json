@@ -1,12 +1,15 @@
 {
   "name": "faq-pajak-fe",
+  "type": "module",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "socket": "node --watch socket/server.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run socket\""
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
@@ -35,6 +38,8 @@
     "eslint-config-next": "16.1.6",
     "prisma": "^7.4.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

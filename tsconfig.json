@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/page_bu.text"  ],
+, "app/page_bu.text", "lib/dbConnection.js", "socket/server.js"  ],
   "exclude": ["node_modules"]
 }
