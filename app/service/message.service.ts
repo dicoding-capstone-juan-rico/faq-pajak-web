@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
 import { ConversationStatus } from '@prisma/client'
 
@@ -64,9 +65,9 @@ export const messageService = {
    */
   startConversation: async (
     content: string
-  ): Promise<StartConversationResponse> => {
-
-    const token = localStorage.getItem('token')
+  ): Promise<StartConversationResponse | 'Unauthorized'> => {
+    try {
+        const token = localStorage.getItem('token')
     if (!token) throw new Error('Token tidak ditemukan')
 
     const response = await axios.post<StartConversationResponse>(
@@ -78,16 +79,24 @@ export const messageService = {
         }
       }
     )
-
+  
     return response.data
+    } catch (e:any) {
+      if (axios.isAxiosError(e) && e.response?.status === 401) {
+        // localStorage.removeItem('token')
+        return 'Unauthorized'
+      }
+      throw e
+    }
   },
+  
 
   /**
    * GET ACTIVE CONVERSATION
    */
-  getConversation: async (): Promise<GetConversationResponse> => {
-
-    const token = localStorage.getItem('token')
+  getConversation: async (): Promise<GetConversationResponse | 'Unauthorized'> => {
+    try {
+         const token = localStorage.getItem('token')
     if (!token) throw new Error('Token tidak ditemukan')
 
     const response = await axios.get<GetConversationResponse>(
@@ -100,6 +109,14 @@ export const messageService = {
     )
 
     return response.data
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        // localStorage.removeItem('token')
+        return 'Unauthorized'
+      }
+      throw error
+    }
+ 
   },
 
   /**

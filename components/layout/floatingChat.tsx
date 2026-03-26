@@ -52,53 +52,56 @@ const FloatingChat = () => {
   // LOAD CONVERSATION
   // =========================
 
-  const loadConversation = async () => {
 
-    try {
-
-      const res = await messageService.getConversation()
-
-      if (!res.data) {
-
-        // tampilkan pesan default frontend
-        setMessages([
-          {
-            id: "welcome",
-            text: "Halo 👋 Selamat datang di FAQ Pajak.\nSilakan tanyakan apa saja seputar pajak dan kami akan membantu Anda.",
-            sender: "cs",
-            timestamp: new Date()
-          }
-        ])
-
-        return
-      }
-
-      const conversation = res.data.conversation
-      const historyMessages = res.data.messages
-
-      setConversationId(conversation.id)
-
-      const mappedMessages: Message[] = historyMessages
-        .reverse()
-        .map((msg: any) => ({
-          id: msg.id,
-          text: msg.content,
-          sender: msg.senderType === "USER" ? "user" : "cs",
-          timestamp: new Date(msg.createdAt),
-        }))
-
-      setMessages(mappedMessages)
-      if (conversation.status === "WAITING_AGENT") {
-        setIsAgent(true)
-        connectSocket(conversation.id)
-      }
-
-
-    } catch (error) {
-      console.error("Load conversation error", error)
+const loadConversation = async () => {
+  try {
+    const res = await messageService.getConversation()
+    
+    if (res === 'Unauthorized') {
+      router.push("/login")
+      return
     }
-  }
 
+    if (!res.data) {
+      // User baru (belum ada conversation di DB)
+      setMessages([{
+        id: "welcome",
+        text: "Halo 👋 Selamat datang di FAQ Pajak...",
+        sender: "cs",
+        timestamp: new Date()
+      }])
+      return
+    }
+
+    const { conversation, messages: historyMessages } = res.data
+    setConversationId(conversation.id)
+
+    // 1. KONEKSI SOCKET SEGERA: Agar Admin tahu user standby
+    // Tidak perlu cek status WAITING_AGENT di sini, 
+    // biar Admin bisa lihat "User Online" kapan saja.
+    connectSocket(conversation.id)
+
+    // 2. Mapping history pesan
+    const mappedMessages: Message[] = historyMessages
+      .reverse()
+      .map((msg: any) => ({
+        id: msg.id,
+        text: msg.content,
+        sender: msg.senderType === "USER" ? "user" : "cs",
+        timestamp: new Date(msg.createdAt),
+      }))
+
+    setMessages(mappedMessages)
+
+    // 3. Set mode agent jika statusnya memang sudah menunggu agent
+    if (conversation.status === "WAITING_AGENT") {
+      setIsAgent(true)
+    }
+
+  } catch (error) {
+    console.error("Load conversation error", error)
+  }
+}
   // =========================
   // CONNECT SOCKET
   // =========================
@@ -198,6 +201,10 @@ const FloatingChat = () => {
     if (!conversationId) {
 
       const res = await messageService.startConversation(textToSubmit)
+      if (res === 'Unauthorized') {
+        router.push("/login")
+        return
+      }
 
       const newConvId = res.data.conversationId
 

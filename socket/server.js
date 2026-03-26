@@ -13,15 +13,45 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("[SOCKET] User connected:", socket.id)
 
-  socket.on("join_conversation", (conversationId) => {
-    console.log("[SOCKET] join_conversation request", {
-      socketId: socket.id,
-      conversationId
-    })
+  // =========================
+  // ADMIN DASHBOARD ROOM
+  // =========================
+  socket.on("join_admin_dashboard", () => {
+    console.log("[SOCKET] admin joined dashboard", socket.id)
+    socket.join("admin_dashboard")
+  })
 
-    socket.join(conversationId)
+  // server.js
 
-    console.log("[SOCKET] joined room", {
+socket.on("join_conversation", async (conversationId) => {
+  try {
+    // 1. User masuk ke room-nya sendiri
+    socket.join(conversationId);
+    console.log(`[SOCKET] User joined room: ${conversationId}`);
+
+    // 2. Ambil data percakapan + info user dari DB
+    // Pastikan include user agar Admin tahu namanya
+    const conversation = await dbCon.conversation.findUnique({
+      where: { id: conversationId },
+      include: { 
+        user: true,
+        messages: { orderBy: { createdAt: 'desc' }, take: 1 } 
+      }
+    });
+
+    if (conversation) {
+      // 3. Kirim data lengkap ke room admin_dashboard
+      // Ini yang bikin user baru "muncul tiba-tiba" di sidebar admin
+      io.to("admin_dashboard").emit("new_conversation", conversation);
+    }
+  } catch (error) {
+    console.error("Error in join_conversation socket:", error);
+  }
+});
+
+  socket.on("leave_conversation", (conversationId) => {
+    socket.leave(conversationId)
+    console.log("[SOCKET] leave room", {
       socketId: socket.id,
       room: conversationId
     })
@@ -46,6 +76,14 @@ io.on("connection", (socket) => {
 
       io.to(conversationId).emit("receive_message", message)
 
+      // notify admin dashboard kalau ini chat baru / update
+      io.to("admin_dashboard").emit("conversation_updated", {
+        conversationId,
+        lastMessage: message.content,
+        senderType: message.senderType,
+        createdAt: message.createdAt
+      })
+
       console.log("[SOCKET] message broadcasted", {
         conversationId,
         messageId: message.id
@@ -55,6 +93,38 @@ io.on("connection", (socket) => {
       console.error("[SOCKET] send_message error", error)
     }
   })
+
+  // Di dalam io.on("connection", (socket) => { ...
+
+socket.on("start_conversation", async (data) => {
+  try {
+    const { userId, userName } = data;
+    
+    // 1. Cari atau buat conversation baru di DB
+    // Supaya meskipun belum ada pesan, record-nya sudah ada
+    let conversation = await dbCon.conversation.findFirst({
+      where: { userId: userId },
+      include: { user: true }
+    });
+
+    if (!conversation) {
+      conversation = await dbCon.conversation.create({
+        data: { userId: userId },
+        include: { user: true }
+      });
+    }
+
+    // 2. Join room conversation tersebut
+    socket.join(conversation.id);
+
+    // 3. Beri tahu admin bahwa ada user baru online/standby
+    io.to("admin_dashboard").emit("new_conversation", conversation);
+
+    console.log(`[SOCKET] User ${userName} started/joined: ${conversation.id}`);
+  } catch (error) {
+    console.error("[SOCKET] start_conversation error", error);
+  }
+});
 
   socket.on("disconnect", () => {
     console.log("[SOCKET] user disconnected:", socket.id)

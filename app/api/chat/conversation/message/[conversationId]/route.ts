@@ -82,17 +82,21 @@ export async function POST(
           })
         }
       )
-
       if (!aiRes.ok) {
         throw new Error("AI service error")
       }
 
       const aiData = await aiRes.json()
       console.log("AI response:", aiData)
-
-      aiReply =
+          aiReply =
         aiData.answer ||
-        "Maaf saya belum bisa menjawab pertanyaan tersebut."
+        "[205]"
+      const isHumanAgent = aiReply.includes("[205]")
+      if (isHumanAgent) {
+        aiReply = "Mohon tunggu sebentar, pertanyaan Anda sedang kami teruskan ke agent."
+        conversationStatus = ConversationStatus.WAITING_AGENT
+      }
+  
 
     } catch (error) {
 
