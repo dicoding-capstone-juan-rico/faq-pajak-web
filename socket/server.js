@@ -131,6 +131,6 @@ socket.on("start_conversation", async (data) => {
   })
 })
 
-server.listen(3001, () => {
-  console.log("[SOCKET] Socket server running on port 3001")
+server.listen(4001, () => {
+  console.log("[SOCKET] Socket server running on port 4001")
 })
