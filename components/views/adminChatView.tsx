@@ -55,7 +55,7 @@ useEffect(() => {
   // INIT SOCKET (Hanya jalan 1 kali)
   // =========================
   useEffect(() => {
-    const socket = io("http://localhost:3001", {
+    const socket = io("http://tanyapajak.online:4001", {
       reconnection: true
     });
 
