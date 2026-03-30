@@ -9,7 +9,7 @@ const Home = () => {
      <div className={`min-h-screen transition-colors duration-500 font-sans dark:bg-[#022c22] bg-white`}>
         <Navbar />
         <HeroSection />
-        <OurFeatures />
+        {/* <OurFeatures /> */}
         <Footer />
      </div>
   )

@@ -32,26 +32,26 @@ services:
       - .:/app
       - /app/node_modules
       # untuk lokal saja, agar timezone di container sama dengan host
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    depends_on:
-      - db
+    #   - /etc/localtime:/etc/localtime:ro
+    #   - /etc/timezone:/etc/timezone:ro
+    # depends_on:
+    #   - db
 
-  db:
-    image: postgres:18.3-alpine
-    container_name: capstone_postgres_db
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: capstone_db
-    ports:
-      - "5434:5432"
-    volumes:
-      - postgres_data_capstone:/var/lib/postgresql/data
-      # untuk lokal saja, agar timezone di container sama dengan host
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
+#   db:
+#     image: postgres:18.3-alpine
+#     container_name: capstone_postgres_db
+#     restart: always
+#     environment:
+#       POSTGRES_USER: ${POSTGRES_USER}
+#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#       POSTGRES_DB: capstone_db
+#     ports:
+#       - "5434:5432"
+#     volumes:
+#       - postgres_data_capstone:/var/lib/postgresql/data
+#       # untuk lokal saja, agar timezone di container sama dengan host
+#       - /etc/localtime:/etc/localtime:ro
+#       - /etc/timezone:/etc/timezone:ro
 
-volumes:
-  postgres_data_capstone:
+# volumes:
+#   postgres_data_capstone:

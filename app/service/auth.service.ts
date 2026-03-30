@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { log } from 'console';
 import { z } from 'zod';
+import { th } from 'zod/locales';
 
 // Perbaikan 1: Gunakan z.string().email()
 export const LoginSchema = z.object({
@@ -8,7 +9,23 @@ export const LoginSchema = z.object({
   password: z.string().min(6, "Password minimal 6 karakter")
 });
 
+export const RegisterSchema = z.object({
+  name: z.string().min(2, "Nama minimal 2 karakter"),
+  email: z.string().email("Format email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter")
+});
+
 export type LoginRequest = z.infer<typeof LoginSchema>;
+export type RegisterRequest = z.infer<typeof RegisterSchema>;
+
+export interface AuthResponse {
+  message: string;
+  data?: {
+    token?: string; // Token opsional saat register
+    user?: User;
+    admin?: any;
+  };
+}
 
 export interface User {
   id: string | number; 
@@ -41,6 +58,7 @@ export interface LoginAdminResponse {
 
 const API_URL = '/api/auth/login'; 
 const ADMIN_API_URL = '/api/auth/login-admin';
+const API_URL_REGISTER = '/api/auth/register';
 
 // --- HELPER FUNCTIONS ---
 
@@ -91,6 +109,17 @@ export const authService = {
 
   loginAdmin: (credentials: LoginRequest): Promise<LoginAdminResponse> => {
     return executeAuthRequest<LoginAdminResponse>(ADMIN_API_URL, credentials);
+  },
+
+  register: async (data: RegisterRequest): Promise<AuthResponse> => {
+    try {
+      RegisterSchema.parse(data);
+      const response = await axios.post<AuthResponse>(API_URL_REGISTER, data);
+      return response.data;
+    } catch (error) {
+      handleAuthError(error);
+      throw error;
+    }
   },
 
   logout: () => {

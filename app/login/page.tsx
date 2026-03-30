@@ -58,7 +58,7 @@ const LoginPage = () => {
           </div>
           
           <h1 className="text-5xl font-bold text-[#022c22] dark:text-white leading-[1.1] tracking-tight mb-6">
-            Pick up right <br />
+            Pick up right kiggg <br />
             where you{' '}
             <span className="relative inline-block">
               <span className="relative z-10 text-[#022c22] dark:text-white italic">left off.</span>
@@ -135,7 +135,7 @@ const LoginPage = () => {
                     />
                   </div>
                 </div>
-              </div>
+              </div>\
 
               {/* Submit Button */}
               <Button className='w-full'>{loading ? 'Loading...' : 'Login'} <ArrowRight size={18} /></Button>
