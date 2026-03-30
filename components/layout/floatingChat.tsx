@@ -17,7 +17,7 @@ type Message = {
 }
 
 const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://tanyapajak.online:4001"
+  process.env.NEXT_PUBLIC_SOCKET_URL || "https://tanyapajak.online/socket.io"
 
 const FloatingChat = () => {
 
