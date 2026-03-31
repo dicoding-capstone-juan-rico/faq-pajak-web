@@ -17,7 +17,7 @@ type Message = {
 }
 
 const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "https://tanyapajak.online/socket.io"
+  process.env.NEXT_PUBLIC_SOCKET_URL || "https://tanyapajak.online"
 
 const FloatingChat = () => {
 
@@ -108,7 +108,10 @@ const loadConversation = async () => {
 
   const connectSocket = (conversationId: string) => {
 
-    const newSocket = io(SOCKET_URL)
+    const newSocket = io(SOCKET_URL, {
+  path: "/socket.io",
+  transports: ["websocket"]
+})
 
     newSocket.emit("join_conversation", conversationId)
 
