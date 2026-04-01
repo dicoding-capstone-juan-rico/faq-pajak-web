@@ -67,7 +67,7 @@ export const messageService = {
     content: string
   ): Promise<StartConversationResponse | 'Unauthorized'> => {
     try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('token_faqpajak')
     if (!token) throw new Error('Token tidak ditemukan')
 
     const response = await axios.post<StartConversationResponse>(
@@ -96,7 +96,7 @@ export const messageService = {
    */
   getConversation: async (): Promise<GetConversationResponse | 'Unauthorized'> => {
     try {
-         const token = localStorage.getItem('token')
+         const token = localStorage.getItem('token_faqpajak')
     if (!token) throw new Error('Token tidak ditemukan')
 
     const response = await axios.get<GetConversationResponse>(
@@ -127,7 +127,7 @@ export const messageService = {
     content: string
   ): Promise<SendMessageResponse> => {
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token_faqpajak')
     if (!token) throw new Error('Token tidak ditemukan')
 
     const response = await axios.post<SendMessageResponse>(
@@ -148,7 +148,7 @@ export const messageService = {
    */
   getUserIdFromToken: (): string | null => {
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token_faqpajak')
     if (!token) return null
 
     try {

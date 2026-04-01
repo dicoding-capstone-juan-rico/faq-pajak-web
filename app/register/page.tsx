@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -51,27 +52,27 @@ const RegisterPage = () => {
                 >
                     <Link href="/" className="inline-flex items-center gap-2 text-[#022c22] mb-12 hover:opacity-70 transition-opacity">
                         <ArrowLeft size={20} />
-                        <span className="font-medium">Back to Home</span>
+                        <span className="font-medium">Kembali ke Beranda</span>
                     </Link>
 
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 mb-8 shadow-sm">
                         <Sparkles size={14} className="text-[#022c22]" />
                         <span className="text-xs font-bold uppercase tracking-wider text-[#022c22]">
-                            Join TanyaPajak
+                            Gabung TanyaPajak
                         </span>
                     </div>
                     
                     <h1 className="text-5xl font-bold text-[#022c22] leading-[1.1] tracking-tight mb-6">
-                        Start your <br />
-                        journey with <br />
+                        Mulai <br />
+                        perjalanan Anda dengan <br />
                         <span className="relative inline-block">
-                            <span className="relative z-10 text-[#022c22] italic">ease.</span>
+                            <span className="relative z-10 text-[#022c22] italic">mudah.</span>
                             <span className="absolute bottom-2 left-0 w-full h-4 bg-[#cdfc4d] -z-0 -rotate-2 opacity-80" />
                         </span>
                     </h1>
                     
                     <p className="text-lg text-gray-600 max-w-md leading-relaxed">
-                        Create an account today and get verified tax answers in seconds. Managing your taxes has never been this simple.
+                        Buat akun hari ini dan dapatkan jawaban pajak terverifikasi dalam hitungan detik. Mengelola pajak Anda tidak pernah semudah ini.
                     </p>
                 </motion.div>
 
@@ -85,8 +86,8 @@ const RegisterPage = () => {
                     <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-2xl border border-gray-100 relative z-20">
                         
                         <div className="mb-8 text-center lg:text-left">
-                            <h2 className="text-3xl font-bold text-[#022c22] mb-2">Create Account</h2>
-                            <p className="text-sm text-gray-600">Join 2,000+ freelancers simplifying their tax</p>
+                            <h2 className="text-3xl font-bold text-[#022c22] mb-2">Buat Akun</h2>
+                            <p className="text-sm text-gray-600">Bergabunglah dengan 2.000+ pekerja lepas yang mempermudah urusan pajak mereka</p>
                         </div>
 
                         <form className="space-y-5" onSubmit={handleRegister}>
@@ -97,14 +98,14 @@ const RegisterPage = () => {
                             )}
                             {success && (
                                 <div className="p-3 bg-green-50 text-green-700 text-sm rounded-xl border border-green-100">
-                                    Registration successful! Redirecting to login...
+                                    Pendaftaran berhasil! Mengarahkan ke halaman masuk...
                                 </div>
                             )}
 
                             <div className="space-y-4">
                                 {/* Name Input */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-[#022c22] mb-2 ml-1"> Full Name </label>
+                                    <label className="block text-sm font-semibold text-[#022c22] mb-2 ml-1"> Nama Lengkap </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <User size={18} className="text-gray-400" />
@@ -112,7 +113,7 @@ const RegisterPage = () => {
                                         <input 
                                             onChange={(e) => setName(e.target.value)}
                                             type="text" 
-                                            placeholder="John Doe"
+                                            placeholder="Budi Santoso"
                                             className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[#022c22] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cdfc4d] transition-all"
                                             required
                                         />
@@ -121,7 +122,7 @@ const RegisterPage = () => {
 
                                 {/* Email Input */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-[#022c22] mb-2 ml-1"> Email Address </label>
+                                    <label className="block text-sm font-semibold text-[#022c22] mb-2 ml-1"> Alamat Email </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <Mail size={18} className="text-gray-400" />
@@ -129,7 +130,7 @@ const RegisterPage = () => {
                                         <input 
                                             onChange={(e) => setEmail(e.target.value)}
                                             type="email" 
-                                            placeholder="you@example.com"
+                                            placeholder="anda@contoh.com"
                                             className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-[#022c22] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cdfc4d] transition-all"
                                             required
                                         />
@@ -138,7 +139,7 @@ const RegisterPage = () => {
 
                                 {/* Password Input */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-[#022c22] mb-2 ml-1"> Password </label>
+                                    <label className="block text-sm font-semibold text-[#022c22] mb-2 ml-1"> Kata Sandi </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <Lock size={18} className="text-gray-400" />
@@ -151,21 +152,21 @@ const RegisterPage = () => {
                                             required
                                         />
                                     </div>
-                                    <p className="mt-2 text-[10px] text-gray-500 ml-1">Min. 6 characters with a mix of letters & numbers</p>
+                                    <p className="mt-2 text-[10px] text-gray-500 ml-1">Min. 6 karakter dengan campuran huruf & angka</p>
                                 </div>
                             </div>
 
                             <Button className='w-full h-14 rounded-2xl text-lg font-semibold' disabled={loading}>
-                                {loading ? 'Creating Account...' : 'Get Started'} 
+                                {loading ? 'Membuat Akun...' : 'Mulai Sekarang'} 
                                 {!loading && <ArrowRight size={18} className="ml-2" />}
                             </Button>
                         </form>
 
                         <div className="mt-8 pt-6 border-t border-gray-100 text-center">
                             <p className="text-sm text-gray-600">
-                                Already have an account?{' '}
+                                Sudah punya akun?{' '}
                                 <Link href="/login" className="font-bold text-[#022c22] hover:text-green-700 transition-colors">
-                                    Login here
+                                    Masuk di sini
                                 </Link>
                             </p>
                         </div>

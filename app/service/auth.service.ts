@@ -21,7 +21,7 @@ export type RegisterRequest = z.infer<typeof RegisterSchema>;
 export interface AuthResponse {
   message: string;
   data?: {
-    token?: string; // Token opsional saat register
+    token?: string; 
     user?: User;
     admin?: any;
   };
@@ -90,7 +90,7 @@ const executeAuthRequest = async <T extends LoginResponse | LoginAdminResponse>(
     const response = await axios.post<T>(url, credentials);
     
     if (response.data.data?.token) {
-      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('token_faqpajak', response.data.data.token);
     }
 
     return response.data;
@@ -123,7 +123,7 @@ export const authService = {
   },
 
   logout: () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('token_faqpajak');
     // Opsional: window.location.href = '/login';
   }
 };

@@ -30,15 +30,12 @@ export default function ChatView() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
-  // Tambahkan | null di tipe data dan berikan null di dalam kurung
-const fetchSidebarRef = useRef<(() => Promise<void>) | null>(null);
+  const fetchSidebarRef = useRef<(() => Promise<void>) | null>(null);
 
-useEffect(() => {
-  fetchSidebarRef.current = fetchSidebar;
-});
+  useEffect(() => {
+    fetchSidebarRef.current = fetchSidebar;
+  });
   
-  // Gunakan ref untuk melacak ID percakapan aktif di dalam socket listener
-  // tanpa memicu re-render atau re-connect socket
   const activeConversationIdRef = useRef<string | null>(null);
 
   const adminId = "admin-demo"; // TODO: ambil dari login
@@ -66,15 +63,12 @@ useEffect(() => {
       console.log("CONNECTED:", socket.id);
       socket.emit("join_admin_dashboard");
       
-      // Re-join room jika tiba-tiba reconnect
       if (activeConversationIdRef.current) {
         socket.emit("join_conversation", activeConversationIdRef.current);
       }
     });
 
-    // realtime chat masuk
     socket.on("receive_message", (message) => {
-      // 1. Update list pesan JIKA pesan masuk di room yang sedang aktif
       if (message.conversationId === activeConversationIdRef.current) {
         const newMsg: Message = {
           id: message.id,
@@ -88,13 +82,11 @@ useEffect(() => {
         setMessages(prev => [...prev, newMsg]);
       }
 
-      // 2. Update cuplikan pesan terakhir di sidebar/list percakapan
       setConversations(prev => {
         return prev.map(conv => {
           if (conv.id === message.conversationId) {
             return {
               ...conv,
-              // Asumsi API mu menggunakan index 0 untuk cuplikan teks terbaru
               messages: [{ content: message.content }, ...(conv.messages || [])]
             };
           }
@@ -104,48 +96,40 @@ useEffect(() => {
     });
 
     socket.on("new_conversation", (conversation) => {
-  setConversations((prev) => {
-    // Cek duplikasi supaya tidak muncul dua kali
-    const exists = prev.find((c) => c.id === conversation.id);
-    if (exists) return prev;
-    
-    // Masukkan ke paling atas sidebar secara real-time
-    return [conversation, ...prev];
-  });
-});
-
-// Listener untuk PESAN BARU (update teks cuplikan)
-socket.on("conversation_updated", (data) => {
-  setConversations((prev) => {
-    const chatExists = prev.find((c) => c.id === data.conversationId);
-
-    if (chatExists) {
-      const updated = prev.map((conv) => {
-        if (conv.id === data.conversationId) {
-          return { ...conv, messages: [{ content: data.lastMessage }] };
-        }
-        return conv;
+      setConversations((prev) => {
+        const exists = prev.find((c) => c.id === conversation.id);
+        if (exists) return prev;
+        return [conversation, ...prev];
       });
-      
-      // Pindahkan percakapan yang baru aktif ke paling atas
-      const idx = updated.findIndex(c => c.id === data.conversationId);
-      const [movedChat] = updated.splice(idx, 1);
-      updated.unshift(movedChat);
-      return updated;
-    } else {
-      // Jika karena alasan teknis datanya belum ada di state, 
-      // ambil ulang semua sidebar dari API
-      fetchSidebarRef.current?.();
-      return prev;
-    }
-  });
-});
+    });
 
-    // Cleanup saat unmount
+    socket.on("conversation_updated", (data) => {
+      setConversations((prev) => {
+        const chatExists = prev.find((c) => c.id === data.conversationId);
+
+        if (chatExists) {
+          const updated = prev.map((conv) => {
+            if (conv.id === data.conversationId) {
+              return { ...conv, messages: [{ content: data.lastMessage }] };
+            }
+            return conv;
+          });
+          
+          const idx = updated.findIndex(c => c.id === data.conversationId);
+          const [movedChat] = updated.splice(idx, 1);
+          updated.unshift(movedChat);
+          return updated;
+        } else {
+          fetchSidebarRef.current?.();
+          return prev;
+        }
+      });
+    });
+
     return () => {
       socket.disconnect();
     };
-  }, []); // <-- Dependency array KOSONG agar socket tidak disconnect terus
+  }, []); 
 
   // =========================
   // OPEN CONVERSATION
@@ -154,22 +138,19 @@ socket.on("conversation_updated", (data) => {
   const openConversation = async (conversationId: string) => {
     if (!socketRef.current) return;
 
-    // leave room lama
     if (activeConversationIdRef.current) {
       socketRef.current.emit("leave_conversation", activeConversationIdRef.current);
     }
 
-    // join room baru
     socketRef.current.emit("join_conversation", conversationId);
 
     setActiveConversation({ id: conversationId });
-    activeConversationIdRef.current = conversationId; // Update ref
+    activeConversationIdRef.current = conversationId; 
 
     try {
       const res = await fetch(`/api/admin/conversation/${conversationId}`);
       const data = await res.json();
 
-      // URUTKAN PESAN (Sort Ascending) agar chat terbaru ada di BAWAH
       const sortedData = (data.data || []).sort((a: any, b: any) => 
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
@@ -193,7 +174,6 @@ socket.on("conversation_updated", (data) => {
   // =========================
   // LOAD CONVERSATIONS (REST)
   // =========================
-  // 1. TAMBAHKAN FUNGSI INI
   const fetchSidebar = async (isInitial = false) => {
     try {
       const res = await fetch("/api/admin/conversation");
@@ -205,7 +185,6 @@ socket.on("conversation_updated", (data) => {
 
       setConversations(normalized);
 
-      // Hanya buka percakapan pertama otomatis saat pertama kali halaman dibuka (refresh)
       if (isInitial && normalized.length > 0) {
         openConversation(normalized[0].id);
       }
@@ -213,13 +192,12 @@ socket.on("conversation_updated", (data) => {
       console.error(err);
     }
   };
+
   useEffect(() => {
     fetchSidebar(true);
   }, []);
 
-  
-
-// =========================
+  // =========================
   // SEND MESSAGE
   // =========================
   const handleSendMessage = (e: React.FormEvent) => {
@@ -235,88 +213,141 @@ socket.on("conversation_updated", (data) => {
       content: messageInput
     });
 
-    // HAPUS ATAU COMMENT BAGIAN INI KE BAWAH:
-    /*
-    setMessages(prev => [
-      ...prev,
-      {
-        id: `temp-${Date.now()}`,
-        sender: "agent",
-        text: messageInput,
-        time: new Date().toLocaleTimeString("id-ID", {
-          hour: "2-digit",
-          minute: "2-digit"
-        })
-      }
-    ]);
-    */
-
-    setMessageInput(""); // Tetap kosongkan input field
+    setMessageInput(""); 
   };
 
   return (
-    <div className="h-[calc(100vh-6rem)] flex overflow-hidden">
+    <div className="h-[calc(100vh-6rem)] flex overflow-hidden bg-white border rounded-2xl shadow-sm mx-4 mb-4">
       {/* SIDEBAR */}
-      <div className="w-80 border-r p-3 space-y-2">
-        {conversations.map((chat) => (
-          <div
-            key={chat.id}
-            onClick={() => openConversation(chat.id)}
-            className={`p-3 rounded-xl cursor-pointer hover:bg-gray-100 ${
-              activeConversation?.id === chat.id ? 'bg-gray-100' : ''
-            }`}
-          >
-            <h3 className="font-bold">
-              {chat.user?.name || "User"}
-            </h3>
-            <p className="text-xs text-gray-500 truncate">
-              {chat.messages?.[0]?.content || "-"}
-            </p>
+      <div className="w-80 border-r bg-gray-50/50 flex flex-col">
+        {/* Header Sidebar (Opsional untuk Tab) */}
+        <div className="p-4 border-b bg-white">
+          <h2 className="text-lg font-bold text-gray-800">Pesan Masuk</h2>
+          <div className="flex gap-2 mt-3">
+            {['Semua', 'Belum Dibaca'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                  activeTab === tab 
+                    ? 'bg-[#022c22] text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* List Percakapan */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {conversations.map((chat) => (
+            <div
+              key={chat.id}
+              onClick={() => openConversation(chat.id)}
+              className={`p-3 rounded-xl cursor-pointer transition-all border border-transparent ${
+                activeConversation?.id === chat.id 
+                  ? 'bg-green-50/50 border-green-100 shadow-sm' 
+                  : 'hover:bg-white hover:border-gray-100 hover:shadow-sm'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-1">
+                <h3 className={`font-semibold text-sm ${activeConversation?.id === chat.id ? 'text-[#022c22]' : 'text-gray-800'}`}>
+                  {chat.user?.name || "Pengguna Anonim"}
+                </h3>
+              </div>
+              <p className="text-xs text-gray-500 truncate pr-4">
+                {chat.messages?.[0]?.content || "Tidak ada pesan..."}
+              </p>
+            </div>
+          ))}
+          {conversations.length === 0 && (
+            <div className="text-center text-sm text-gray-400 py-10">
+              Belum ada percakapan
+            </div>
+          )}
+        </div>
       </div>
 
       {/* CHAT AREA */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-white">
+        
+        {/* Header Chat Area */}
+        {activeConversation ? (
+          <div className="p-4 border-b flex items-center justify-between bg-white shadow-sm z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold">
+                {conversations.find(c => c.id === activeConversation.id)?.user?.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-800">
+                  {conversations.find(c => c.id === activeConversation.id)?.user?.name || "Pengguna Anonim"}
+                </h3>
+                <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                  Aktif sekarang
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 border-b h-[73px] bg-white shadow-sm z-10"></div> // Spacer jika belum ada yg dipilih
+        )}
+
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((msg) => {
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/30">
+          {!activeConversation && (
+            <div className="h-full flex items-center justify-center text-gray-400">
+              Pilih percakapan untuk mulai membalas
+            </div>
+          )}
+
+          {messages.map((msg, index) => {
             const isAdmin = msg.sender === 'agent';
             return (
               <div
-                key={msg.id}
+                key={msg.id || index}
                 className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`p-3 rounded-xl max-w-[70%] ${
-                    isAdmin ? 'bg-green-600 text-white' : 'bg-gray-200 text-black'
+                  className={`relative p-3.5 rounded-2xl max-w-[75%] shadow-sm ${
+                    isAdmin 
+                      ? 'bg-[#022c22] text-white rounded-br-sm' 
+                      : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm'
                   }`}
                 >
-                  {msg.text}
-                  <div className="text-[10px] opacity-70 mt-1">
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                  <div className={`text-[10px] mt-2 text-right ${isAdmin ? 'text-green-200' : 'text-gray-400'}`}>
                     {msg.time}
                   </div>
                 </div>
               </div>
             );
           })}
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className="h-4" />
         </div>
 
         {/* INPUT */}
-        <div className="p-4 border-t">
-          <form onSubmit={handleSendMessage} className="flex gap-2">
-            <input
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              className="flex-1 border rounded-full px-4 py-2"
-              placeholder="Ketik balasan..."
-            />
-            <button className="bg-green-500 text-white px-4 py-2 rounded-full">
-              send
-            </button>
-          </form>
-        </div>
+        {activeConversation && (
+          <div className="p-4 bg-white border-t">
+            <form onSubmit={handleSendMessage} className="flex gap-3 items-center">
+              <input
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                className="flex-1 border border-gray-200 bg-gray-50 focus:bg-white rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-gray-800"
+                placeholder="Ketik balasan untuk pengguna..."
+              />
+              <button 
+                type="submit"
+                disabled={!messageInput.trim()}
+                className="bg-[#cdfc4d] hover:bg-[#b5e03e] text-[#022c22] font-semibold px-6 py-3 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+              >
+                Kirim
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

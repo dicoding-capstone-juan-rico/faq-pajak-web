@@ -3,19 +3,17 @@ services:
     build: .
     container_name: capstone_web_faq_pajak
     ports:
-      - "4000:4000"
+      - "4000:3000" 
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - AI_API_URL=${AI_API_URL}
+    # Volumes lokal (- .:/app) 
     volumes:
-      - .:/app
-      - /app/node_modules
-      # untuk lokal saja, agar timezone di container sama dengan host
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     depends_on:
-      - db
+      # - db
       - socket
 
   socket:
@@ -28,14 +26,10 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - AI_API_URL=${AI_API_URL}
-    volumes:
-      - .:/app
-      - /app/node_modules
-      # untuk lokal saja, agar timezone di container sama dengan host
+    # Volumes lokal (- .:/app)
+    # volumes:
     #   - /etc/localtime:/etc/localtime:ro
     #   - /etc/timezone:/etc/timezone:ro
-    # depends_on:
-    #   - db
 
 #   db:
 #     image: postgres:18.3-alpine
@@ -49,7 +43,6 @@ services:
 #       - "5434:5432"
 #     volumes:
 #       - postgres_data_capstone:/var/lib/postgresql/data
-#       # untuk lokal saja, agar timezone di container sama dengan host
 #       - /etc/localtime:/etc/localtime:ro
 #       - /etc/timezone:/etc/timezone:ro
 
