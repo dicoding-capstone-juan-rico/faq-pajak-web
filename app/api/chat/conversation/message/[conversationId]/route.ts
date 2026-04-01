@@ -1,8 +1,7 @@
 import { dbCon } from "@/lib/dbConnection"
 import { successResponse, errorResponse } from "@/lib/response"
 import jwt from "jsonwebtoken"
-import { SenderType } from "@prisma/client"
-import { ConversationStatus } from "@/app/generated/prisma/client"
+import { SenderType,ConversationStatus } from "@prisma/client"
 
 export async function POST(
   req: Request,
